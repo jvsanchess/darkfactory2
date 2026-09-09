@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     auto_create_schema: bool = False
     seed_demo_data: bool = True
     cors_origins: str = (
+        "http://localhost:5173,http://127.0.0.1:5173,"
         "http://localhost:3000,http://localhost:4173,"
         "https://darkfactory-studio.joaovitosanches.chatgpt.site"
     )

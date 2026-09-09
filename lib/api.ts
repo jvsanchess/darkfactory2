@@ -42,7 +42,17 @@ export type DashboardSnapshot = {
 
 export type ApiMode = "connected" | "demo" | "offline";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+function getApiBaseUrl(): string | undefined {
+  const configured = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+  if (configured) return configured;
+  // Local desktop installs must still reach Docker when the bundler does not
+  // expose NEXT_PUBLIC_API_URL. Never redirect a hosted site to a visitor's PC.
+  if (typeof window !== "undefined" &&
+      ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)) {
+    return "http://localhost:8000/api/v1";
+  }
+  return undefined;
+}
 
 export const demoDashboard: DashboardSnapshot = {
   metrics: [
@@ -112,6 +122,7 @@ export async function loadDashboard(): Promise<{
   snapshot: DashboardSnapshot;
   mode: ApiMode;
 }> {
+  const API_BASE_URL = getApiBaseUrl();
   if (!API_BASE_URL) {
     return { snapshot: demoDashboard, mode: "demo" };
   }
@@ -120,6 +131,7 @@ export async function loadDashboard(): Promise<{
     const response = await fetch(`${API_BASE_URL}/dashboard`, {
       headers: { Accept: "application/json" },
       cache: "no-store",
+      signal: AbortSignal.timeout(10000),
     });
     if (!response.ok) throw new Error(`Dashboard request failed: ${response.status}`);
     return { snapshot: await response.json(), mode: "connected" };
@@ -129,11 +141,13 @@ export async function loadDashboard(): Promise<{
 }
 
 export async function approveRemoteContent(contentId: number): Promise<ContentItem | null> {
+  const API_BASE_URL = getApiBaseUrl();
   if (!API_BASE_URL) return null;
 
   const response = await fetch(`${API_BASE_URL}/contents/${contentId}/approve`, {
     method: "PATCH",
     headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(10000),
   });
   if (!response.ok) throw new Error(`Approval request failed: ${response.status}`);
   return response.json();
