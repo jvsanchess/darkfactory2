@@ -1,0 +1,25 @@
+[project]
+name = "darkfactory-api"
+version = "0.2.0"
+description = "FastAPI backend for DarkFactory"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.116,<1.0",
+  "alembic>=1.16,<2.0",
+  "celery[redis]>=5.5,<6.0",
+  "pydantic-settings>=2.10,<3.0",
+  "psycopg[binary]>=3.2,<4.0",
+  "redis>=6.0,<8.0",
+  "sqlalchemy>=2.0,<3.0",
+  "uvicorn[standard]>=0.35,<1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28,<1.0",
+  "pytest>=8.4,<9.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
